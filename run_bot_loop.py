@@ -4,7 +4,7 @@ import subprocess
 
 # === CONFIGURATION ===
 TOTAL_RUNS = 200   # Number of times to run the bot (change as needed)
-DELAY_BETWEEN_RUNS = 300  # Delay in seconds between runs (e.g., 300s = 5min)
+DELAY_BETWEEN_RUNS = 120  # Delay in seconds between runs (e.g., 300s = 5min)
 BOT_COMMAND = [
     "python3", "-u", "ultimate_bot_tor.py", 
     "https://x.com/Hitansh54/status/1931754193489957133",           # CHANGE to your target URL
