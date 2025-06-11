@@ -2,52 +2,65 @@ import os
 import time
 import subprocess
 
-# Open log file in append mode
-logfile = open("full_run_log.txt", "a")
+# === CONFIGURATION ===
+TOTAL_RUNS = 200   # Number of times to run the bot (change as needed)
+DELAY_BETWEEN_RUNS = 300  # Delay in seconds between runs (e.g., 300s = 5min)
+BOT_COMMAND = [
+    "python3", "-u", "ultimate_bot_tor.py", 
+    "https://example.com",           # CHANGE to your target URL
+    "--target", "2000",              # CHANGE to your desired view count
+    "--headless",                    # Add/remove flags as needed
+    "--tor"
+]
+LOGFILE_NAME = "full_run_log.txt"
 
-for i in range(200):
-    header = f"\n--- Run {i+1}/200 ---\n"
-    print(header)
-    logfile.write(header)
-    logfile.flush()
+# === END CONFIGURATION ===
 
-    print("🔄 Restarting Tor service...")
-    logfile.write("🔄 Restarting Tor service...\n")
-    logfile.flush()
-    os.system("sudo service tor restart")
-    time.sleep(10)
-
-    print("🌐 Fetching new Tor IP...")
-    logfile.write("🌐 Fetching new Tor IP...\n")
-    logfile.flush()
-    ip = os.popen("curl --socks5 127.0.0.1:9050 https://api.ipify.org").read().strip()
-    print(f"✅ New Tor IP: {ip}")
-    logfile.write(f"✅ New Tor IP: {ip}\n")
-    logfile.flush()
-
-    print("🤖 Launching ultimate_bot.py via Tor...\n")
-    logfile.write("🤖 Launching ultimate_bot.py via Tor...\n")
-    logfile.flush()
-
-    process = subprocess.Popen(
-        ["python3", "-u" , "ultimate_bot_tor.py", "--batch", "--headless", "--browser", "--tor"],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        universal_newlines=True,
-        bufsize=1
-    )
-
-    for line in iter(process.stdout.readline, ''):
-        print(line, end='')           # Terminal output
-        logfile.write(line)           # Log file output
+with open(LOGFILE_NAME, "a") as logfile:
+    for i in range(TOTAL_RUNS):
+        header = f"\n--- Run {i+1}/{TOTAL_RUNS} ---\n"
+        print(header)
+        logfile.write(header)
         logfile.flush()
 
-    process.stdout.close()
-    process.wait()
+        print("🔄 Restarting Tor service...")
+        logfile.write("🔄 Restarting Tor service...\n")
+        logfile.flush()
+        os.system("sudo service tor restart")
+        time.sleep(10)
 
-    print("⏳ Waiting 300 seconds before next run...\n")
-    logfile.write("⏳ Waiting 300 seconds before next run...\n\n")
-    logfile.flush()
-    time.sleep(300)
+        print("🌐 Fetching new Tor IP...")
+        logfile.write("🌐 Fetching new Tor IP...\n")
+        logfile.flush()
+        ip = os.popen("curl --socks5 127.0.0.1:9050 https://api.ipify.org").read().strip()
+        print(f"✅ New Tor IP: {ip}")
+        logfile.write(f"✅ New Tor IP: {ip}\n")
+        logfile.flush()
 
-logfile.close()
+        print(f"🤖 Launching bot: {' '.join(BOT_COMMAND)}\n")
+        logfile.write(f"🤖 Launching bot: {' '.join(BOT_COMMAND)}\n")
+        logfile.flush()
+
+        # Run the bot and stream output to both console and log file
+        process = subprocess.Popen(
+            BOT_COMMAND,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            universal_newlines=True,
+            bufsize=1
+        )
+
+        for line in iter(process.stdout.readline, ''):
+            print(line, end='')           # Terminal output
+            logfile.write(line)           # Log file output
+            logfile.flush()
+
+        process.stdout.close()
+        process.wait()
+
+        print(f"⏳ Waiting {DELAY_BETWEEN_RUNS} seconds before next run...\n")
+        logfile.write(f"⏳ Waiting {DELAY_BETWEEN_RUNS} seconds before next run...\n\n")
+        logfile.flush()
+        time.sleep(DELAY_BETWEEN_RUNS)
+
+print("✅ All runs complete.")
